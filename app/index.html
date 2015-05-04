@@ -13,6 +13,7 @@
 		var music = [];
 		var directory_watcher = null;
 		var current_player_process = null;
+		var current_file = "";
 		var current_dir = s.music_directory;
 		// Displays that mplayer is looped
 		var loop_enabled = false;
@@ -28,6 +29,25 @@
 			}).map(function (i, file) {
 				return path+file;
 			}).get();
+		}
+		/**
+		 * Sets text at wmii's bar
+		 * @param {string} text - string to write
+		 */
+		function set_bar_text (text) {
+			if(s.sound_bar != "") 
+				spawn("wmiir",["xwrite", s.sound_bar, "label " + text]);
+		}
+		/**
+		 * Converts full filename to cropped version to output it to wmii bar
+		 * @param  {string} filename - full filename
+		 * @return {string}          - cropped filename
+		 */
+		function filename_to_bar (filename) {
+			if(filename.length<40)
+				return filename;
+			else
+				return filename.substr(0,40)+"...";
 		}
 		/**
 		 * Starts watch to given dir_path for update music list
@@ -60,9 +80,9 @@
 		function play (file_path) {
 			loop_enabled = false;
 			filename = file_path.split("/").pop();
-			// Write current song to sound bar if it exists
-			if(s.sound_bar != "") 
-				spawn("wmiir",["xwrite", s.sound_bar, "label " + filename.substr(0,40)+"..."]);
+			current_file = filename;
+			// Write current song to sound bar
+			set_bar_text(filename_to_bar(filename));
 			var play_option;
 			// Check if file is playlist
 			if(filename.split(".").pop() == "m3u"){
@@ -103,10 +123,14 @@
 				next();
 		},
 		"loop": function () {
-			if(loop_enabled)
+			if(loop_enabled){
     			command("loop -1");
-    		else
+    			set_bar_text(filename_to_bar(current_file));
+			}
+    		else{
     			command("loop 1");
+    			set_bar_text("[looped] " + filename_to_bar(current_file));
+    		}
     		loop_enabled = !loop_enabled;
 		},
 		"play-file": function () {
