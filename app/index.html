@@ -25,7 +25,7 @@
 		 */
 		function music_list (path) {
 			return $(fs.readdirSync(path)).filter(function (i,file) {
-				return fs.lstatSync(path+file).isFile();
+				return !fs.lstatSync(path+file).isDirectory();
 			}).map(function (i, file) {
 				return path+file;
 			}).get();
@@ -134,7 +134,7 @@
     		loop_enabled = !loop_enabled;
 		},
 		"play-file": function () {
-			show_select_widow(play, current_dir, function (e) {return e.isFile()});
+			show_select_widow(play, current_dir, function (e) {return !e.isDirectory()});
 		},
 		"seek-forward": function () {
 			command("seek " + s.seek_seconds + " 0");
